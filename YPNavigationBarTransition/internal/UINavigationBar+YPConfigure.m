@@ -49,18 +49,36 @@ SOFTWARE.
     UIView *barBackgroundView = [self yp_backgroundView];
     UIImage* const transpanrentImage = [UIImage yp_transparentImage];
     if (configure.transparent) {
-        barBackgroundView.alpha = 0;
         self.translucent = YES;
-        [self setBackgroundImage:transpanrentImage forBarMetrics:UIBarMetricsDefault];
+        barBackgroundView.alpha = 0;
+        if (@available(iOS 15.0, *)) {
+            UINavigationBarAppearance *barApp = [UINavigationBarAppearance new];
+            [barApp setBackgroundImage:transpanrentImage];
+            self.scrollEdgeAppearance = barApp;
+            self.standardAppearance = barApp;
+        }else{
+            [self setBackgroundImage:transpanrentImage forBarMetrics:UIBarMetricsDefault];
+        }
     } else {
         barBackgroundView.alpha = 1;
         self.translucent = configure.translucent;
         UIImage* backgroundImage = configure.backgroundImage;
-        if (!backgroundImage && configure.backgroundColor) {
-            backgroundImage = [UIImage yp_imageWithColor:configure.backgroundColor];
+        if (@available(iOS 15.0, *)) {
+            UINavigationBarAppearance *barApp = [UINavigationBarAppearance new];
+            if (!backgroundImage && configure.backgroundColor) {
+                barApp.backgroundColor = configure.backgroundColor;
+            }else{
+                [barApp setBackgroundImage:backgroundImage];
+            }
+            barApp.shadowColor = [UIColor clearColor];  // 设置导航栏下边界分割线透明
+            self.scrollEdgeAppearance = barApp;
+            self.standardAppearance = barApp;
+        }else{
+            if (!backgroundImage && configure.backgroundColor) {
+                backgroundImage = [UIImage yp_imageWithColor:configure.backgroundColor];
+            }
+            [self setBackgroundImage:backgroundImage forBarMetrics:UIBarMetricsDefault];
         }
-        
-        [self setBackgroundImage:backgroundImage forBarMetrics:UIBarMetricsDefault];
     }
     
     self.shadowImage = configure.shadowImage ? nil : transpanrentImage;
